@@ -50,7 +50,6 @@ ptyprocess==0.7.0
 pyasn1==0.5.0 
 pycparser==2.21
 pycryptodome==3.19.0  # Reemplazo de pycrypto
-pyodbc==4.0.32  # Reemplazo de pymssql
 pypng==0.20220715.0   
 PyQRCode==1.2.1
 PyQt5-Qt5==5.15.14
