@@ -5,35 +5,22 @@ from dotenv import load_dotenv
 from cachetools import TTLCache
 import ipaddress
 
-# Función para pedir las claves y crear el archivo .env automáticamente
-def create_env_file():
-    imgur_client_id = input("Introduce tu IMGUR_CLIENT_ID: ")
-    ipstack_api_key = input("Introduce tu IPSTACK_API_KEY: ")
-
-    with open('.env', 'w') as env_file:
-        env_file.write(f"IMGUR_CLIENT_ID={imgur_client_id}\n")
-        env_file.write(f"IPSTACK_API_KEY={ipstack_api_key}\n")
-
-    print("Archivo .env creado con éxito.")
-
-# Cargar las variables de entorno desde un archivo .env, o crear el archivo si no existe
-if not os.path.exists('.env'):
-    print("El archivo .env no existe. Creando archivo .env...")
-    create_env_file()
-
+# Cargar las variables de entorno desde el archivo .env
 load_dotenv()
 
 app = Flask(__name__)
 
-# Configuración de la API de Imgur y geolocalización
-IMGUR_CLIENT_ID = os.getenv('IMGUR_CLIENT_ID')
-IPSTACK_API_KEY = os.getenv('IPSTACK_API_KEY')
+# Configuración de la API de Imgur y geolocalización con valores por defecto
+DEFAULT_IMGUR_CLIENT_ID = 'f2acd61ca6a4b03'
+DEFAULT_IPSTACK_API_KEY = '0902c6d29b2eb5453520bcaf0dbe4424'
+
+# Leer las claves API desde el archivo .env si existen, de lo contrario usar las claves por defecto
+IMGUR_CLIENT_ID = os.getenv('IMGUR_CLIENT_ID', DEFAULT_IMGUR_CLIENT_ID)
+IPSTACK_API_KEY = os.getenv('IPSTACK_API_KEY', DEFAULT_IPSTACK_API_KEY)
 
 # Verificación de que las claves estén configuradas
 if not IMGUR_CLIENT_ID or not IPSTACK_API_KEY:
-    print("Faltan claves de API. Creando archivo .env...")
-    create_env_file()
-    load_dotenv()
+    print("Faltan claves de API. Verifica que tus claves estén configuradas correctamente.")
 
 # Caché de imágenes subidas (TTL de 24 horas, max 100 imágenes por IP)
 image_cache = TTLCache(maxsize=100, ttl=86400)
@@ -97,10 +84,9 @@ def print_ascii_art():
     print(art)
     print("\nBienvenido a Gaia OSINT")
     print("\nPara usar este programa, sigue estos pasos:")
-    print("1. Asegúrate de tener tu IMGUR_CLIENT_ID y IPSTACK_API_KEY.")
-    print("2. Si es tu primera vez ejecutando el programa, se te pedirá que los ingreses.")
-    print("3. Sube una imagen accediendo a la URL base de la aplicación.")
-    print("4. Para rastrear la geolocalización de un usuario que acceda a una imagen, usa /track_image/<image_id>.")
+    print("1. Si es tu primera vez ejecutando el programa, se te pedirá que los ingreses.")
+    print("2. Sube una imagen accediendo a la URL base de la aplicación.")
+    print("3. Para rastrear la geolocalización de un usuario que acceda a una imagen, usa /track_image/<image_id>.")
     print("\n¡Disfruta usando Gaia OSINT!\n")
 
 if __name__ == '__main__':
