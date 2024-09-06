@@ -85,8 +85,7 @@ typing_extensions==4.8.0
 update==0.0.1  
 urllib3==2.0.7
 userpath==1.9.2   
-Werkzeug==3.0.0   
-wifite==2.2.5 
+Werkzeug==3.0.0    
 wsproto==1.2.0
 yara-python==4.4.0  
 zipp==3.17.0
