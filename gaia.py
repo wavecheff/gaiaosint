@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify, redirect, render_template_string
+from flask import Flask, request, jsonify, redirect, render_template_string, url_for
 import requests
 import os
 from dotenv import load_dotenv
 from cachetools import TTLCache
 import ipaddress
+import base64
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
@@ -45,39 +46,51 @@ def get_geolocation(ip):
         return response.json()
     return None
 
-# Ruta para generar el enlace de Imgur y capturar la geolocalización
-@app.route('/track_image/<image_id>')
-def track_image(image_id):
-    user_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+# Subir imagen a Imgur usando la API
+def upload_image_to_imgur(image_data):
+    url = "https://api.imgur.com/3/image"
+    payload = {'image': image_data}
+    headers = {'Authorization': f'Client-ID {IMGUR_CLIENT_ID}'}
+    
+    response = requests.post(url, headers=headers, data=payload)
+    
+    if response.status_code == 200:
+        return response.json()['data']['link']
+    return None
 
-    # Obtener la geolocalización del usuario
-    geolocation = get_geolocation(user_ip)
-
-    # Imprimir la geolocalización en la consola para rastrearla
-    if geolocation:
-        print(f"IP: {user_ip}, Geolocalización: {geolocation}")
-
-    # Redirigir al enlace de la imagen en Imgur
-    imgur_link = f"https://i.imgur.com/{image_id}.jpeg"
-    return redirect(imgur_link)
-
-# Ruta para ver las imágenes subidas por el usuario
-@app.route('/my_images')
-def my_images():
-    user_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
-    if user_ip in image_cache:
-        return jsonify({'images': image_cache[user_ip]}), 200
-    else:
-        return jsonify({'message': 'No has subido imágenes recientemente.'}), 200
+# Ruta para subir imagen
+@app.route('/upload_image', methods=['GET', 'POST'])
+def upload_image():
+    if request.method == 'POST':
+        # Obtener imagen del formulario
+        image = request.files['image']
+        image_data = base64.b64encode(image.read()).decode('utf-8')
+        
+        # Subir la imagen a Imgur
+        imgur_link = upload_image_to_imgur(image_data)
+        
+        if imgur_link:
+            return f"<h3>Imagen subida exitosamente: <a href='{imgur_link}'>{imgur_link}</a></h3>"
+        else:
+            return "<h3>Error al subir la imagen.</h3>"
+    
+    # Mostrar el formulario para subir imágenes
+    html_content = """
+    <h1>Subir una imagen</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*" required>
+        <button type="submit">Subir Imagen</button>
+    </form>
+    """
+    return render_template_string(html_content)
 
 # Ruta principal para mostrar una página de inicio con botones
 @app.route('/')
 def index():
     html_content = """
     <h1>Bienvenido a Gaia OSINT</h1>
-    <p>Por favor, sube una imagen o accede a /track_image/&lt;image_id&gt; para rastrear la geolocalización.</p>
-    <button onclick="window.location.href='/my_images'">Ver Imágenes Subidas</button>
-    <button onclick="window.location.href='/track_image/example'">Probar Geolocalización con Imagen</button>
+    <p>Por favor, sube una imagen para rastrear la geolocalización.</p>
+    <button onclick="window.location.href='/upload_image'">Subir Imagen</button>
     """
     return render_template_string(html_content)
 
@@ -95,9 +108,9 @@ def print_ascii_art():
     print(art)
     print("\nBienvenido a Gaia OSINT")
     print("\nPara usar este programa, sigue estos pasos:")
-    print("1. Asegúrate de hacer un uso responsble. Gaia OSINT se exime de su mal uso.")
-    print("3. Sube una imagen accediendo a la URL base de la aplicación.")
-    print("4. Para rastrear la geolocalización de un usuario que acceda a una imagen, usa /track_image/<image_id>.")
+    print("1. Asegúrate de hacer un uso responsable. Gaia OSINT se exime de su mal uso.")
+    print("2. Sube una imagen accediendo a la URL base de la aplicación.")
+    print("3. Para rastrear la geolocalización de un usuario que acceda a una imagen, usa /track_image/<image_id>.")
     print("\n¡Disfruta usando Gaia OSINT!\n")
 
 if __name__ == '__main__':
@@ -107,3 +120,4 @@ if __name__ == '__main__':
     # Iniciar la aplicación en el puerto asignado por Heroku
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
+
