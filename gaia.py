@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, redirect
+from flask import Flask, request, jsonify, redirect, render_template_string
 import requests
 import os
 from dotenv import load_dotenv
@@ -70,10 +70,16 @@ def my_images():
     else:
         return jsonify({'message': 'No has subido imágenes recientemente.'}), 200
 
-# Ruta principal para mostrar una página de inicio
+# Ruta principal para mostrar una página de inicio con botones
 @app.route('/')
 def index():
-    return "<h1>Bienvenido a Gaia OSINT</h1><p>Por favor, sube una imagen o accede a /track_image/&lt;image_id&gt; para rastrear la geolocalización.</p>"
+    html_content = """
+    <h1>Bienvenido a Gaia OSINT</h1>
+    <p>Por favor, sube una imagen o accede a /track_image/&lt;image_id&gt; para rastrear la geolocalización.</p>
+    <button onclick="window.location.href='/my_images'">Ver Imágenes Subidas</button>
+    <button onclick="window.location.href='/track_image/example'">Probar Geolocalización con Imagen</button>
+    """
+    return render_template_string(html_content)
 
 # Función para imprimir el arte ASCII y un mensaje de bienvenida
 def print_ascii_art():
@@ -89,7 +95,7 @@ def print_ascii_art():
     print(art)
     print("\nBienvenido a Gaia OSINT")
     print("\nPara usar este programa, sigue estos pasos:")
-    print("2. Haz un uso responalbe en un entorno controlado. BO-ot e If se eximen de cualquier mal uso del programa.")
+    print("1. Asegúrate de hacer un uso responsble. Gaia OSINT se exime de su mal uso.")
     print("3. Sube una imagen accediendo a la URL base de la aplicación.")
     print("4. Para rastrear la geolocalización de un usuario que acceda a una imagen, usa /track_image/<image_id>.")
     print("\n¡Disfruta usando Gaia OSINT!\n")
