@@ -70,6 +70,11 @@ def my_images():
     else:
         return jsonify({'message': 'No has subido imágenes recientemente.'}), 200
 
+# Ruta principal para mostrar una página de inicio
+@app.route('/')
+def index():
+    return "<h1>Bienvenido a Gaia OSINT</h1><p>Por favor, sube una imagen o accede a /track_image/&lt;image_id&gt; para rastrear la geolocalización.</p>"
+
 # Función para imprimir el arte ASCII y un mensaje de bienvenida
 def print_ascii_art():
     art = r"""
@@ -84,9 +89,10 @@ def print_ascii_art():
     print(art)
     print("\nBienvenido a Gaia OSINT")
     print("\nPara usar este programa, sigue estos pasos:")
-    print("1. Si es tu primera vez ejecutando el programa, se te pedirá que los ingreses.")
-    print("2. Sube una imagen accediendo a la URL base de la aplicación.")
-    print("3. Para rastrear la geolocalización de un usuario que acceda a una imagen, usa /track_image/<image_id>.")
+    print("1. Asegúrate de tener tu IMGUR_CLIENT_ID y IPSTACK_API_KEY.")
+    print("2. Si es tu primera vez ejecutando el programa, se te pedirá que los ingreses.")
+    print("3. Sube una imagen accediendo a la URL base de la aplicación.")
+    print("4. Para rastrear la geolocalización de un usuario que acceda a una imagen, usa /track_image/<image_id>.")
     print("\n¡Disfruta usando Gaia OSINT!\n")
 
 if __name__ == '__main__':
@@ -95,4 +101,4 @@ if __name__ == '__main__':
 
     # Iniciar la aplicación en el puerto asignado por Heroku
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=True
