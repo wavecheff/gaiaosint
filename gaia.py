@@ -89,8 +89,7 @@ def print_ascii_art():
     print(art)
     print("\nBienvenido a Gaia OSINT")
     print("\nPara usar este programa, sigue estos pasos:")
-    print("1. Asegúrate de tener tu IMGUR_CLIENT_ID y IPSTACK_API_KEY.")
-    print("2. Si es tu primera vez ejecutando el programa, se te pedirá que los ingreses.")
+    print("2. Haz un uso responalbe en un entorno controlado. BO-ot e If se eximen de cualquier mal uso del programa.")
     print("3. Sube una imagen accediendo a la URL base de la aplicación.")
     print("4. Para rastrear la geolocalización de un usuario que acceda a una imagen, usa /track_image/<image_id>.")
     print("\n¡Disfruta usando Gaia OSINT!\n")
@@ -101,4 +100,4 @@ if __name__ == '__main__':
 
     # Iniciar la aplicación en el puerto asignado por Heroku
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=True
+    app.run(host='0.0.0.0', port=port, debug=True)
