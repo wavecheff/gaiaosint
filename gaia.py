@@ -12,7 +12,6 @@ import torchvision.transforms as transforms
 from torchvision import models
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from fpdf import FPDF
-from celery import Celery
 
 # Configuración de la aplicación Flask
 app = Flask(__name__)
@@ -20,18 +19,12 @@ app.config['UPLOAD_FOLDER'] = '/tmp'
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # Tamaño máximo de archivo de 5MB
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'supersecretkey')  # Para autenticación JWT
 
-# Configuración de Celery para tareas asíncronas
-app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
-app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
-celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
-celery.conf.update(app.config)
-
 jwt = JWTManager(app)
 cache = redis.StrictRedis(host='localhost', port=6379, db=0)
 logging.basicConfig(level=logging.INFO)
 
 # Cargar modelo de clasificación de imágenes (ResNet)
-model = models.resnet50(pretrained=True)
+model = models.resnet50(weights='IMAGENET1K_V1')  # Usamos la versión más actualizada de las weights
 model.eval()
 
 # Cargar etiquetas de ImageNet
@@ -112,12 +105,6 @@ def detect_vpn_proxy(ip):
         logging.error(f"Error al detectar VPN/Proxy: {e}")
         return 0
 
-# Tarea asíncrona para predecir imágenes con IA
-@celery.task
-def async_predict(image_path):
-    prediction = cache_or_predict(image_path)
-    return prediction
-
 # Endpoints de la aplicación
 
 @app.route('/')
@@ -142,10 +129,14 @@ def handle_image():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
-        # Procesar la predicción de manera asíncrona
-        task = async_predict.delay(filepath)
-        flash("La predicción de la IA está en progreso. Esto puede tomar unos momentos.", "info")
-
+        # Predicción con IA
+        try:
+            prediction = cache_or_predict(filepath)
+            flash(f"La IA ha clasificado la imagen como: {prediction}", "success")
+        except Exception as e:
+            logging.error(f"Error al hacer la predicción: {e}")
+            flash("Error al procesar la imagen con IA", "error")
+        
         # Extraer metadatos EXIF
         exif_data = extract_exif(filepath)
         if exif_data:
@@ -199,5 +190,16 @@ def login():
         return jsonify({"msg": "Credenciales incorrectas"}), 401
 
 if __name__ == '__main__':
+    # Abre automáticamente el navegador en local
+    local_url = "http://127.0.0.1:5001"
+    heroku_url = "https://gaiaosint-709ed257d657.herokuapp.com/"
+    
+    if 'DYNO' not in os.environ:
+        # Localmente, abre la URL local
+        webbrowser.open(local_url)
+    else:
+        # En Heroku, abre la URL de la app
+        webbrowser.open(heroku_url)
+    
     port = int(os.environ.get("PORT", 5001))
     app.run(host='0.0.0.0', port=port, debug=True)
