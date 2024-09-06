@@ -117,7 +117,6 @@ if __name__ == '__main__':
     # Imprimir el arte ASCII y la bienvenida
     print_ascii_art()
 
-    # Iniciar la aplicación en el puerto asignado por Heroku
-    port = int(os.environ.get("PORT", 5000))
+    # Iniciar la aplicación en el puerto 5001 en lugar de 5000
+    port = int(os.environ.get("PORT", 5001))
     app.run(host='0.0.0.0', port=port, debug=True)
-
