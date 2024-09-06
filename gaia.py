@@ -115,7 +115,7 @@ def print_ascii_art():
 
 if __name__ == '__main__':
     # Solo imprimir el arte ASCII si Flask no está en modo de reinicio automático
-    if os.environ.get('FLASK_RUN_FROM_CLI') != 'true':
+    if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         print_ascii_art()
 
     # Iniciar la aplicación en el puerto 5001 en lugar de 5000
