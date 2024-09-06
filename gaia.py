@@ -114,8 +114,9 @@ def print_ascii_art():
     print("\n¡Disfruta usando Gaia OSINT!\n")
 
 if __name__ == '__main__':
-    # Imprimir el arte ASCII y la bienvenida
-    print_ascii_art()
+    # Solo imprimir el arte ASCII si Flask no está en modo de reinicio automático
+    if os.environ.get('FLASK_RUN_FROM_CLI') != 'true':
+        print_ascii_art()
 
     # Iniciar la aplicación en el puerto 5001 en lugar de 5000
     port = int(os.environ.get("PORT", 5001))
