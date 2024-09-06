@@ -80,5 +80,7 @@ def home():
     '''
     return render_template_string(html)
 
+# Iniciar la aplicación en el puerto asignado por Heroku
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
