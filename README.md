@@ -5,10 +5,12 @@
 ```markdown
 # Gaia OSINT
 
-## Descripción
-Gaia OSINT es una herramienta de código abierto diseñada para realizar análisis OSINT (Open Source Intelligence) mediante la geolocalización de usuarios que visualizan imágenes. La herramienta permite capturar la dirección IP de quien accede a un enlace de imagen y luego obtener su ubicación aproximada usando la API de IPStack. También soporta la subida de imágenes a Imgur y la generación de informes OSINT.
+#Descripción
+Gaia OSINT es una herramienta de código abierto diseñada para realizar análisis OSINT 
+(Open Source Intelligence) mediante la geolocalización de usuarios que visualizan imágenes. 
+La herramienta permite capturar la dirección IP de quien accede a un enlace de imagen y luego obtener su ubicación aproximada usando la API de IPStack. También soporta la subida de imágenes a Imgur y la generación de informes OSINT.
 
-## Características principales
+# Características principales
 - **Captura de IP**: Captura la dirección IP del usuario que visualiza una imagen.
 - **Geolocalización mediante IP**: Obtiene la geolocalización aproximada del usuario utilizando la API de IPStack.
 - **Subida de imágenes a Imgur**: Sube imágenes a Imgur y genera un enlace de imagen para compartir.
@@ -24,7 +26,7 @@ Gaia OSINT es una herramienta de código abierto diseñada para realizar anális
 ### Instrucciones de instalación
 
 1. Clonar el repositorio:
-   ```bash
+   
    git clone https://github.com/tu_usuario/gaia-osint.git
    ```
 
