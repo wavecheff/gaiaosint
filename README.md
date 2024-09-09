@@ -1,6 +1,7 @@
+
 # GaiaOSINT
 
-GaiaOSINT es una herramienta de recopilación de información y geolocalización basada en Flask. Este proyecto permite la subida de imágenes, extracción de metadatos EXIF, generación de informes OSINT, y rastreo de la geolocalización mediante la dirección IP de un usuario.
+GaiaOSINT es una herramienta de recopilación de información y geolocalización basada en OSINT. Permite la clasificación de imágenes mediante IA, extracción de metadatos y rastreo de la geolocalización de usuarios.
 
 ## Características
 
@@ -9,9 +10,9 @@ GaiaOSINT es una herramienta de recopilación de información y geolocalización
 - Rastreo de la geolocalización de usuarios mediante dirección IP.
 - Generación de informes OSINT en formato PDF.
 - Soporte para JWT para autenticación.
-
+   
 ## Requisitos
-
+   
 - Python 3.9 o superior.
 - Redis instalado y corriendo localmente.
 - Tener un entorno virtual configurado.
@@ -22,5 +23,27 @@ GaiaOSINT es una herramienta de recopilación de información y geolocalización
    ```bash
    git clone https://github.com/wavecheff/gaiaosint.git
    cd gaiaosint
+   ```
 
+2. Instala las dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Carga automática de variables de entorno:
+   El sistema creará automáticamente un archivo `.env` con las claves API necesarias (IMGUR y IPStack) cuando se ejecute el proyecto. Si no deseas que se creen automáticamente, puedes modificar las claves directamente en el código fuente o configurar manualmente el archivo `.env`.
+
+4. Corre el proyecto:
+   ```bash
+   python app.py
+   ```
+
+## Configuración en Heroku
+
+Si despliegas la aplicación en Heroku, asegúrate de establecer las siguientes variables de entorno en las **Config Vars**:
+
+- `IMGUR_CLIENT_ID`
+- `IPSTACK_API_KEY`
+
+Heroku asigna dinámicamente el puerto, por lo que la aplicación está configurada para usar el puerto correcto automáticamente.
 
