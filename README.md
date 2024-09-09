@@ -35,7 +35,7 @@ GaiaOSINT es una herramienta de recopilación de información y geolocalización
 
 4. Corre el proyecto:
    ```bash
-   python app.py
+   python gaia.py
    ```
 
 ## Configuración en Heroku
