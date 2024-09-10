@@ -16,6 +16,10 @@ app = Flask(__name__)
 API_KEY_IPSTACK = os.getenv('API_KEY_IPSTACK')
 IMGUR_CLIENT_ID = os.getenv('IMGUR_CLIENT_ID')
 
+# Depuración para verificar si la clave API de IPStack se ha cargado
+print(f"Clave API de IPStack cargada: {API_KEY_IPSTACK}")
+print(f"Clave API de Imgur cargada: {IMGUR_CLIENT_ID}")
+
 # Diccionario para almacenar los enlaces de seguimiento asociados a un ID de usuario
 tracking_data = {}
 
