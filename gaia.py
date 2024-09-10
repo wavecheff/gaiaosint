@@ -163,4 +163,4 @@ if __name__ == "__main__":
     flask_thread.start()
 
     # Mostrar el menú en el hilo principal
-      menu()
+    menu()
