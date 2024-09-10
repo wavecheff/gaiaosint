@@ -1,5 +1,6 @@
 import requests
 import os
+import threading
 from datetime import datetime
 from dotenv import load_dotenv
 from flask import Flask, request, redirect, jsonify, send_file
@@ -133,6 +134,33 @@ def serve_image(filename):
     else:
         return jsonify({"error": "Archivo no encontrado"}), 404
 
+# Menú principal para subir imágenes y generar enlaces
+def menu():
+    while True:
+        print("\nMenú Principal:")
+        print("1. Subir imagen y obtener enlace")
+        print("2. Salir")
+        choice = input("\nElige una opción (1 o 2): ")
+
+        if choice == '1':
+            upload_image()
+        elif choice == '2':
+            print("Saliendo del programa. ¡Adiós!")
+            break
+        else:
+            print("Opción no válida, intenta de nuevo.")
+
+# Función para iniciar Flask en un hilo separado
+def run_flask():
+    app.run(port=5001, debug=True)
+
 if __name__ == "__main__":
     print_ascii_art()
-    app.run(port=5001, debug=True)
+    
+    # Iniciar Flask en un hilo separado
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.daemon = True
+    flask_thread.start()
+
+    # Mostrar el menú en el hilo principal
+      menu()
