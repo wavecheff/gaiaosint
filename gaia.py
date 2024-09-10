@@ -9,13 +9,13 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Obtener las API keys desde las variables de entorno
-API_KEY_IPSTACK = os.getenv('IPSTACK_API_KEY')
-IMGUR_CLIENT_ID = os.getenv('IMGUR_CLIENT_ID')
+# Claves API configuradas manualmente
+API_KEY_IPSTACK = '0902c6d29b2eb5453520bcaf0dbe4424'
+IMGUR_CLIENT_ID = 'f2acd61ca6a4b03'
 
 # Verificar que las API keys se cargaron correctamente
 if not API_KEY_IPSTACK or not IMGUR_CLIENT_ID:
-    raise EnvironmentError("Faltan claves de API. Asegúrate de que las claves de IPStack y Imgur estén configuradas en el archivo .env")
+    raise EnvironmentError("Faltan claves de API. Asegúrate de que las claves de IPStack y Imgur estén configuradas correctamente.")
 
 # Ruta para servir la imagen y capturar la IP del usuario
 @app.route('/imagen/<filename>', methods=['GET'])
