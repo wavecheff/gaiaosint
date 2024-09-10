@@ -7,16 +7,11 @@ from flask import Flask, request, redirect, jsonify, send_file
 import random
 import string
 
-# Cargar las claves automáticamente desde el archivo .env
-load_dotenv()
-
-app = Flask(__name__)
-
-# Claves API desde .env
-API_KEY_IPSTACK = os.getenv('API_KEY_IPSTACK')
+# Forzar la clave API de IPStack directamente en el código para probar
+API_KEY_IPSTACK = "0902c6d29b2eb5453520bcaf0dbe4424"
 IMGUR_CLIENT_ID = os.getenv('IMGUR_CLIENT_ID')
 
-# Depuración para verificar si la clave API de IPStack se ha cargado
+# Depuración para verificar si la clave API de IPStack se ha cargado correctamente
 print(f"Clave API de IPStack cargada: {API_KEY_IPSTACK}")
 print(f"Clave API de Imgur cargada: {IMGUR_CLIENT_ID}")
 
@@ -29,7 +24,7 @@ def print_ascii_art():
    ██████   █████  ██  █████  
   ██       ██   ██ ██ ██   ██ 
   ██   ███ ███████ ██ ███████  
-  ██    ██ ██   ██ ██   ██  
+  ██    ██ ██   ██ ██ ██   ██  
    ██████  ██   ██ ██ ██   ██  
 
             By GaiaOSINT
