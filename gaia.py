@@ -1,21 +1,89 @@
-from flask import Flask, request, send_file, jsonify
 import requests
 import os
-from datetime import datetime
 from dotenv import load_dotenv
+from flask import Flask, request, send_file, jsonify
 
-# Cargar variables de entorno desde el archivo .env automáticamente
+# Cargar las claves automáticamente desde el archivo .env
 load_dotenv()
 
 app = Flask(__name__)
 
-# Claves API configuradas manualmente
+# Claves API
 API_KEY_IPSTACK = '0902c6d29b2eb5453520bcaf0dbe4424'
 IMGUR_CLIENT_ID = 'f2acd61ca6a4b03'
 
-# Verificar que las API keys se cargaron correctamente
-if not API_KEY_IPSTACK or not IMGUR_CLIENT_ID:
-    raise EnvironmentError("Faltan claves de API. Asegúrate de que las claves de IPStack y Imgur estén configuradas correctamente.")
+# Función para mostrar el arte ASCII
+def print_ascii_art():
+    art = """
+   ██████   █████  ██  █████  
+  ██       ██   ██ ██ ██   ██ 
+  ██   ███ ███████ ██ ███████  
+  ██    ██ ██   ██ ██ ██   ██  
+   ██████  ██   ██ ██ ██   ██  
+
+            By GaiaOSINT
+      Desarrollado por BO-ot & If
+
+Advertencia: Esta herramienta es para uso educativo y de investigación.
+Cualquier uso malintencionado será responsabilidad del usuario.
+    """
+    print(art)
+
+# Menú principal
+def menu():
+    print_ascii_art()
+    print("\nMenú Principal:")
+    print("1. Subir imagen y obtener enlace")
+    print("2. Salir")
+    choice = input("\nElige una opción (1 o 2): ")
+
+    if choice == '1':
+        upload_image()
+    elif choice == '2':
+        print("Saliendo del programa. ¡Adiós!")
+    else:
+        print("Opción no válida, intenta de nuevo.")
+        menu()
+
+# Función para subir la imagen a Imgur
+def upload_image():
+    file_path = input("\nIntroduce la ruta de la imagen que deseas subir: ")
+
+    try:
+        with open(file_path, 'rb') as image:
+            headers = {'Authorization': f'Client-ID {IMGUR_CLIENT_ID}'}
+            files = {'image': image}
+            response = requests.post('https://api.imgur.com/3/image', headers=headers, files=files)
+
+            if response.status_code == 200:
+                data = response.json()
+                print(f"\nEnlace de la imagen: {data['data']['link']}")
+            else:
+                print("\nError al subir la imagen. Intenta de nuevo.")
+    except FileNotFoundError:
+        print("\nNo se pudo encontrar el archivo. Intenta de nuevo.")
+
+    input("\nPresiona Enter para volver al menú principal...")
+    menu()
+
+# Función para obtener la geolocalización mediante IP
+def get_geolocation(ip):
+    url = f"http://api.ipstack.com/{ip}?access_key={API_KEY_IPSTACK}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    return None
+
+# Función para guardar los datos del visitante
+def save_visitor_data(ip, location):
+    data = {
+        'ip': ip,
+        'location': location,
+        'date': str(datetime.now())
+    }
+    with open('visitor_data.log', 'a') as file:
+        file.write(str(data) + '\n')
+    print(f"Datos del visitante guardados: {data}")
 
 # Ruta para servir la imagen y capturar la IP del usuario
 @app.route('/imagen/<filename>', methods=['GET'])
@@ -28,46 +96,10 @@ def serve_image(filename):
     location = get_geolocation(visitor_ip)
     if location:
         print(f"Ubicación aproximada: {location}")
-
-        # Guardar los datos del visitante en un archivo o base de datos
         save_visitor_data(visitor_ip, location)
 
-    # Enviar la imagen solicitada
     return send_file(f'static/images/{filename}', mimetype='image/jpeg')
 
-# Función para obtener la geolocalización
-def get_geolocation(ip):
-    url = f"http://api.ipstack.com/{ip}?access_key={API_KEY_IPSTACK}"
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    return None
-
-# Función para guardar los datos del visitante
-def save_visitor_data(ip, location):
-    # Puedes guardar los datos en un archivo o base de datos
-    data = {
-        'ip': ip,
-        'location': location,
-        'date': str(datetime.now())
-    }
-    with open('visitor_data.log', 'a') as file:
-        file.write(str(data) + '\n')
-    print(f"Datos del visitante guardados: {data}")
-
-# Ruta para subir imágenes a Imgur
-@app.route('/upload', methods=['POST'])
-def upload_image():
-    image = request.files['image']
-    headers = {'Authorization': f'Client-ID {IMGUR_CLIENT_ID}'}
-    files = {'image': image.read()}
-    response = requests.post('https://api.imgur.com/3/image', headers=headers, files=files)
-
-    if response.status_code == 200:
-        data = response.json()
-        return jsonify({'link': data['data']['link']})
-    else:
-        return jsonify({'error': 'Error al subir la imagen'}), 500
-
 if __name__ == "__main__":
+    menu()
     app.run(port=5001, debug=True)
