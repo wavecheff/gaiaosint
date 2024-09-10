@@ -152,7 +152,8 @@ def menu():
 
 # Función para iniciar Flask en un hilo separado
 def run_flask():
-    app.run(port=5001, debug=True)
+    # Iniciar Flask sin depuración y sin recargador para evitar señales en hilos secundarios
+    app.run(port=5001, debug=False, use_reloader=False)
 
 if __name__ == "__main__":
     print_ascii_art()
