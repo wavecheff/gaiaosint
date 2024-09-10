@@ -47,7 +47,9 @@ def menu():
 
 # Función para subir la imagen a Imgur
 def upload_image():
-    file_path = input("\nIntroduce la ruta de la imagen que deseas subir: ")
+    file_path = input("\nArrastra la imagen aquí: ").strip()
+    print(f"Ruta recibida: {file_path}")
+    print(f"¿El archivo existe? {os.path.exists(file_path)}")
 
     try:
         with open(file_path, 'rb') as image:
