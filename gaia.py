@@ -4,24 +4,20 @@ import logging
 from flask import Flask, render_template, request, jsonify
 from datetime import datetime
 from dotenv import load_dotenv
-from logging.handlers import RotatingFileHandler
+from config import Config  # Importar la configuración desde config.py
 
-# Cargar las variables de entorno desde el archivo .env
-load_dotenv()
-
-# Configuración de rotación de logs
-handler = RotatingFileHandler('visitor_data.log', maxBytes=10000, backupCount=3)
-logging.basicConfig(handlers=[handler], level=logging.INFO, format='%(asctime)s %(message)s')
-
-# Cargar las claves API desde .env
-API_KEY_IPSTACK = os.getenv('API_KEY_IPSTACK')
-IMGUR_CLIENT_ID = os.getenv('IMGUR_CLIENT_ID')
+# Cargar las claves API desde config.py
+API_KEY_IPSTACK = Config.API_KEY_IPSTACK
+IMGUR_CLIENT_ID = Config.IMGUR_CLIENT_ID
 
 # Verificar que las claves API estén correctamente cargadas
 if not API_KEY_IPSTACK or not IMGUR_CLIENT_ID:
     raise ValueError("Las claves API no están configuradas correctamente. Verifica el archivo .env")
 
-# Crear instancia de la aplicación Flask
+# Configuración básica del logger
+logging.basicConfig(filename='visitor_data.log', level=logging.INFO, format='%(asctime)s %(message)s')
+
+# Crear la instancia de Flask
 app = Flask(__name__)
 
 # Extensiones permitidas para la subida de imágenes
@@ -62,7 +58,7 @@ def upload_image():
 
     except requests.exceptions.RequestException as e:
         return f"Error en la solicitud a Imgur: {e}"
-    
+
 # Ruta para capturar la información del visitante
 @app.route('/track/<user_id>', methods=['GET'])
 def track_user(user_id):
@@ -101,28 +97,28 @@ def save_visitor_data(ip, location, user_agent):
         'user_agent': user_agent,
         'date': str(datetime.now())
     }
-    logging.info(f"Datos del visitante guardados: {data}") 
-        
+    logging.info(f"Datos del visitante guardados: {data}")
+
 # Ruta para recibir los metadatos del navegador
 @app.route('/save_metadata', methods=['POST'])
 def save_metadata():
     data = request.json
     logging.info(f"Metadatos del navegador: {data}")
     return jsonify({"status": "Metadatos guardados"}), 200
-        
+
 # Ruta para recibir los eventos de clic
 @app.route('/track_click', methods=['POST'])
 def track_click():
     data = request.json
     logging.info(f"Click registrado: {data}")
     return jsonify({"status": "Click guardado"}), 200
-            
+
 # Ruta para recibir la ubicación exacta
 @app.route('/save_location', methods=['POST'])
 def save_location():
     data = request.json
     logging.info(f"Ubicación del usuario: {data}")
     return jsonify({"status": "Ubicación guardada"}), 200
-    
+
 if __name__ == "__main__":
     app.run(debug=True)
