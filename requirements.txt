@@ -86,3 +86,6 @@ Werkzeug==3.0.0
 wsproto==1.2.0
 yara-python==4.4.0  
 zipp==3.17.0
+Flask==2.1.2
+requests==2.27.1
+python-dotenv==0.19.2

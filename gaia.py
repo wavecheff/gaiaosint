@@ -1,16 +1,29 @@
 import os
 import requests
-from flask import Flask, render_template, request, redirect
+import logging
+from flask import Flask, render_template, request, jsonify
+from datetime import datetime
 from dotenv import load_dotenv
 
-# Cargar las claves de las variables de entorno
+# Cargar las variables de entorno desde el archivo .env
 load_dotenv()
 
+# Configuración básica del logger para manejo concurrente de logs
+logging.basicConfig(filename='visitor_data.log', level=logging.INFO, format='%(asctime)s %(message)s')
+
+# Cargar las claves API desde .env
+API_KEY_IPSTACK = os.getenv('API_KEY_IPSTACK', '0902c6d29b2eb5453520bcaf0dbe4424')  # Tu clave de IPStack
+IMGUR_CLIENT_ID = os.getenv('IMGUR_CLIENT_ID', 'f2acd61ca6a4b03')  # Tu Client ID de Imgur
+
+# Crear instancia de la aplicación Flask
 app = Flask(__name__)
 
-# Claves API desde las variables de entorno
-API_KEY_IPSTACK = os.getenv('API_KEY_IPSTACK')
-IMGUR_CLIENT_ID = os.getenv('IMGUR_CLIENT_ID')
+# Extensiones permitidas para la subida de imágenes
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+# Validar que el archivo tenga una extensión permitida
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Página de inicio con el formulario
 @app.route('/')
@@ -24,50 +37,65 @@ def upload_image():
         return "No se seleccionó ninguna imagen."
 
     image = request.files['image']
+
+    if image.filename == '' or not allowed_file(image.filename):
+        return "Formato de archivo no permitido. Solo se permiten imágenes (png, jpg, jpeg, gif)."
+
     headers = {'Authorization': f'Client-ID {IMGUR_CLIENT_ID}'}
     files = {'image': image.read()}
-    response = requests.post('https://api.imgur.com/3/image', headers=headers, files=files)
 
-    if response.status_code == 200:
-        data = response.json()
-        return f"Enlace de la imagen: {data['data']['link']}"
-    else:
-        return "Error al subir la imagen a Imgur."
+    try:
+        response = requests.post('https://api.imgur.com/3/image', headers=headers, files=files)
+
+        if response.status_code == 200:
+            data = response.json()
+            return f"Enlace de la imagen: {data['data']['link']}"
+        else:
+            error_msg = response.json().get('data', {}).get('error', 'Error desconocido')
+            return f"Error al subir la imagen a Imgur: {error_msg}"
+
+    except requests.exceptions.RequestException as e:
+        return f"Error en la solicitud a Imgur: {e}"
 
 # Ruta para capturar la información del visitante
 @app.route('/track/<user_id>', methods=['GET'])
 def track_user(user_id):
     visitor_ip = request.remote_addr
     user_agent = request.headers.get('User-Agent')
-    print(f"Visitante IP: {visitor_ip}")
-    print(f"User-Agent: {user_agent}")
+    logging.info(f"Visitante IP: {visitor_ip}, User-Agent: {user_agent}")
 
     # Obtener la geolocalización de la IP
     location = get_geolocation(visitor_ip)
     if location:
         save_visitor_data(visitor_ip, location, user_agent)
-        return f"Ubicación aproximada: {location}"
+        return jsonify({'ip': visitor_ip, 'location': location, 'user_agent': user_agent})
     else:
-        return "Error al obtener la geolocalización."
+        return jsonify({'error': 'Error al obtener la geolocalización'}), 500
 
 # Función para obtener la geolocalización mediante IP
 def get_geolocation(ip):
-    url = f"http://api.ipstack.com/{ip}?access_key={API_KEY_IPSTACK}"
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    return None
+    try:
+        url = f"http://api.ipstack.com/{ip}?access_key={API_KEY_IPSTACK}"
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            logging.error(f"Error en la solicitud de geolocalización: {response.status_code} - {response.text}")
+            return None
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error en la solicitud de geolocalización: {e}")
+        return None
 
 # Función para guardar los datos del visitante
 def save_visitor_data(ip, location, user_agent):
     data = {
         'ip': ip,
         'location': location,
-        'user_agent': user_agent
+        'user_agent': user_agent,
+        'date': str(datetime.now())
     }
-    with open('visitor_data.log', 'a') as file:
-        file.write(str(data) + '\n')
-    print(f"Datos del visitante guardados: {data}")
+    logging.info(f"Datos del visitante guardados: {data}")
 
 if __name__ == "__main__":
     app.run(debug=True)
