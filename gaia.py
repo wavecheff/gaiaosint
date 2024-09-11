@@ -1,83 +1,54 @@
-import requests
 import os
-import threading
-from datetime import datetime
+import requests
+from flask import Flask, render_template, request, redirect
 from dotenv import load_dotenv
-from flask import Flask, request, redirect, jsonify, send_file
-import random
-import string
 
-# Cargar las claves automáticamente desde el archivo .env
+# Cargar las claves de las variables de entorno
 load_dotenv()
 
-# Crear la instancia de la aplicación Flask
 app = Flask(__name__)
 
-# Forzar la clave API de IPStack directamente en el código para probar
-API_KEY_IPSTACK = "0902c6d29b2eb5453520bcaf0dbe4424"
+# Claves API desde las variables de entorno
+API_KEY_IPSTACK = os.getenv('API_KEY_IPSTACK')
 IMGUR_CLIENT_ID = os.getenv('IMGUR_CLIENT_ID')
 
-# Depuración para verificar si la clave API de IPStack se ha cargado correctamente
-print(f"Clave API de IPStack cargada: {API_KEY_IPSTACK}")
-print(f"Clave API de Imgur cargada: {IMGUR_CLIENT_ID}")
+# Página de inicio con el formulario
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-# Diccionario para almacenar los enlaces de seguimiento asociados a un ID de usuario
-tracking_data = {}
-
-# Función para mostrar el arte ASCII
-def print_ascii_art():
-    art = """
-   ██████   █████  ██  █████  
-  ██       ██   ██ ██ ██   ██ 
-  ██   ███ ███████ ██ ███████  
-  ██    ██ ██   ██ ██   ██  
-   ██████  ██   ██ ██ ██   ██  
-
-            By GaiaOSINT
-      Desarrollado por BO-ot & If
-
-Advertencia: Esta herramienta es para uso educativo y de investigación.
-Cualquier uso malintencionado será responsabilidad del usuario.
-    """
-    print(art)
-
-# Función para generar una URL de seguimiento única
-def generate_tracking_url(image_link):
-    user_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-    tracking_url = f"http://localhost:5001/track/{user_id}"
-    tracking_data[user_id] = image_link
-    return user_id, tracking_url
-
-# Función para subir la imagen a Imgur
+# Ruta para subir imagen a Imgur
+@app.route('/upload', methods=['POST'])
 def upload_image():
-    file_path = input("\nArrastra la imagen aquí: ").strip()
-    
-    if not os.path.exists(file_path):
-        print("\nNo se pudo encontrar el archivo. Intenta de nuevo.")
-        return
-    
-    print(f"Ruta recibida: {file_path}")
+    if 'image' not in request.files:
+        return "No se seleccionó ninguna imagen."
 
-    try:
-        with open(file_path, 'rb') as image:
-            headers = {'Authorization': f'Client-ID {IMGUR_CLIENT_ID}'}
-            files = {'image': image}
-            response = requests.post('https://api.imgur.com/3/image', headers=headers, files=files)
+    image = request.files['image']
+    headers = {'Authorization': f'Client-ID {IMGUR_CLIENT_ID}'}
+    files = {'image': image.read()}
+    response = requests.post('https://api.imgur.com/3/image', headers=headers, files=files)
 
-            if response.status_code == 200:
-                data = response.json()
-                print(f"\nEnlace de la imagen: {data['data']['link']}")
-                user_id, tracking_url = generate_tracking_url(data['data']['link'])
-                print(f"URL de seguimiento: {tracking_url}")
-                return tracking_url, data['data']['link']
-            else:
-                print("\nError al subir la imagen. Intenta de nuevo.")
-    except requests.exceptions.RequestException as e:
-        print(f"Error en la solicitud: {e}")
-    except FileNotFoundError as e:
-        print(f"Archivo no encontrado: {e}")
-    except Exception as e:
-        print(f"Error inesperado: {e}")
+    if response.status_code == 200:
+        data = response.json()
+        return f"Enlace de la imagen: {data['data']['link']}"
+    else:
+        return "Error al subir la imagen a Imgur."
+
+# Ruta para capturar la información del visitante
+@app.route('/track/<user_id>', methods=['GET'])
+def track_user(user_id):
+    visitor_ip = request.remote_addr
+    user_agent = request.headers.get('User-Agent')
+    print(f"Visitante IP: {visitor_ip}")
+    print(f"User-Agent: {user_agent}")
+
+    # Obtener la geolocalización de la IP
+    location = get_geolocation(visitor_ip)
+    if location:
+        save_visitor_data(visitor_ip, location, user_agent)
+        return f"Ubicación aproximada: {location}"
+    else:
+        return "Error al obtener la geolocalización."
 
 # Función para obtener la geolocalización mediante IP
 def get_geolocation(ip):
@@ -92,81 +63,11 @@ def save_visitor_data(ip, location, user_agent):
     data = {
         'ip': ip,
         'location': location,
-        'user_agent': user_agent,
-        'date': str(datetime.now())
+        'user_agent': user_agent
     }
     with open('visitor_data.log', 'a') as file:
         file.write(str(data) + '\n')
     print(f"Datos del visitante guardados: {data}")
 
-# Ruta para capturar la información del visitante (similar a Trape)
-@app.route('/track/<user_id>', methods=['GET'])
-def track_user(user_id):
-    visitor_ip = request.remote_addr
-    user_agent = request.headers.get('User-Agent')
-    print(f"Visitante IP: {visitor_ip}")
-    print(f"User-Agent: {user_agent}")
-
-    # Obtener la geolocalización de la IP
-    location = get_geolocation(visitor_ip)
-    if location:
-        print(f"Ubicación aproximada: {location}")
-        save_visitor_data(visitor_ip, location, user_agent)
-
-    # Redirigir a la URL de la imagen asociada con el user_id
-    image_link = tracking_data.get(user_id, "https://www.example.com")
-    return redirect(image_link)
-
-# Ruta para servir la imagen y capturar la IP del usuario
-@app.route('/imagen/<filename>', methods=['GET'])
-def serve_image(filename):
-    visitor_ip = request.remote_addr
-    user_agent = request.headers.get('User-Agent')
-    print(f"Visitante IP: {visitor_ip}")
-    print(f"User-Agent: {user_agent}")
-
-    # Obtener la geolocalización de la IP
-    location = get_geolocation(visitor_ip)
-    if location:
-        print(f"Ubicación aproximada: {location}")
-        save_visitor_data(visitor_ip, location, user_agent)
-
-    image_path = f'static/images/{filename}'
-    
-    # Verificar si el archivo existe
-    if os.path.exists(image_path):
-        return send_file(image_path, mimetype='image/jpeg')
-    else:
-        return jsonify({"error": "Archivo no encontrado"}), 404
-
-# Menú principal para subir imágenes y generar enlaces
-def menu():
-    while True:
-        print("\nMenú Principal:")
-        print("1. Subir imagen y obtener enlace")
-        print("2. Salir")
-        choice = input("\nElige una opción (1 o 2): ")
-
-        if choice == '1':
-            upload_image()
-        elif choice == '2':
-            print("Saliendo del programa. ¡Adiós!")
-            break
-        else:
-            print("Opción no válida, intenta de nuevo.")
-
-# Función para iniciar Flask en un hilo separado
-def run_flask():
-    # Iniciar Flask sin depuración y sin recargador para evitar señales en hilos secundarios
-    app.run(port=5001, debug=False, use_reloader=False)
-
 if __name__ == "__main__":
-    print_ascii_art()
-    
-    # Iniciar Flask en un hilo separado
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.daemon = True
-    flask_thread.start()
-
-    # Mostrar el menú en el hilo principal
-    menu()
+    app.run(debug=True)
