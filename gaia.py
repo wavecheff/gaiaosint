@@ -12,8 +12,12 @@ load_dotenv()
 logging.basicConfig(filename='visitor_data.log', level=logging.INFO, format='%(asctime)s %(message)s')
 
 # Cargar las claves API desde .env
-API_KEY_IPSTACK = os.getenv('API_KEY_IPSTACK', '0902c6d29b2eb5453520bcaf0dbe4424')  # Tu clave de IPStack
-IMGUR_CLIENT_ID = os.getenv('IMGUR_CLIENT_ID', 'f2acd61ca6a4b03')  # Tu Client ID de Imgur
+API_KEY_IPSTACK = os.getenv('API_KEY_IPSTACK')
+IMGUR_CLIENT_ID = os.getenv('IMGUR_CLIENT_ID')
+
+# Verificar que las claves API estén correctamente cargadas
+if not API_KEY_IPSTACK or not IMGUR_CLIENT_ID:
+    raise ValueError("Las claves API no están configuradas correctamente. Verifica el archivo .env")
 
 # Crear instancia de la aplicación Flask
 app = Flask(__name__)
@@ -96,6 +100,27 @@ def save_visitor_data(ip, location, user_agent):
         'date': str(datetime.now())
     }
     logging.info(f"Datos del visitante guardados: {data}")
+
+# Ruta para recibir los metadatos del navegador
+@app.route('/save_metadata', methods=['POST'])
+def save_metadata():
+    data = request.json
+    logging.info(f"Metadatos del navegador: {data}")
+    return jsonify({"status": "Metadatos guardados"}), 200
+
+# Ruta para recibir los eventos de clic
+@app.route('/track_click', methods=['POST'])
+def track_click():
+    data = request.json
+    logging.info(f"Click registrado: {data}")
+    return jsonify({"status": "Click guardado"}), 200
+
+# Ruta para recibir la ubicación exacta
+@app.route('/save_location', methods=['POST'])
+def save_location():
+    data = request.json
+    logging.info(f"Ubicación del usuario: {data}")
+    return jsonify({"status": "Ubicación guardada"}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
