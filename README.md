@@ -1,17 +1,20 @@
+
+```markdown
 # GaiaOSINT
 
-   ██████   █████  ██  █████  
-  ██       ██   ██ ██ ██   ██  
-  ██   ███ ███████ ██ ███████  
-  ██    ██ ██   ██ ██ ██   ██  
-   ██████  ██   ██ ██ ██   ██  
+```
+   ██████   █████  ██  █████
+  ██       ██   ██ ██ ██   ██
+  ██   ███ ███████ ██ ███████
+  ██    ██ ██   ██ ██ ██   ██
+   ██████  ██   ██ ██ ██   ██
 
-            By GaiaOSINT  
-      Desarrollado por BO-ot & If
+           By GaiaOSINT
+    Desarrollado por BO-ot & If
 
-Advertencia: Esta herramienta es para uso educativo y de investigación.  
+Advertencia: Esta herramienta es para uso educativo y de investigación.
 Cualquier uso malintencionado será responsabilidad del usuario.
-
+```
 ---
 
 ## Características
