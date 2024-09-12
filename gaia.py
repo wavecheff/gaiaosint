@@ -5,6 +5,18 @@ from flask import Flask, render_template, request, jsonify
 from flask_talisman import Talisman
 from datetime import datetime
 from dotenv import load_dotenv
+from pathlib import Path
+
+# Función para crear un archivo .env vacío si no existe
+def check_and_create_env():
+    if not Path('.env').is_file():
+        with open('.env', 'w') as env_file:
+            env_file.write("API_KEY_IPSTACK=\nIMGUR_CLIENT_ID=\n")
+        print(".env file not found. A new .env file has been created. Please add your API keys.")
+        exit(1)
+
+# Verificar que el archivo .env exista, si no lo crea
+check_and_create_env()
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
