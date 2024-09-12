@@ -68,10 +68,10 @@ def upload_image():
 # Ruta para capturar la información del visitante
 @app.route('/track/<user_id>', methods=['GET'])
 def track_user(user_id):
-    visitor_ip = request.remote_addr
+    visitor_ip = request.remote_addr   
     user_agent = request.headers.get('User-Agent')
     logging.info(f"Visitante IP: {visitor_ip}, User-Agent: {user_agent}")
-
+        
     # Obtener la geolocalización de la IP
     location = get_geolocation(visitor_ip)
     if location:
@@ -79,12 +79,12 @@ def track_user(user_id):
         return jsonify({'ip': visitor_ip, 'location': location, 'user_agent': user_agent})
     else:
         return jsonify({'error': 'Error al obtener la geolocalización'}), 500
-
+    
 # Función para obtener la geolocalización mediante IP
 def get_geolocation(ip):
     try:
         url = f"http://api.ipstack.com/{ip}?access_key={API_KEY_IPSTACK}"
-        response = requests.get(url)
+        response = requests.get(url)   
 
         if response.status_code == 200:
             return response.json()
@@ -95,7 +95,7 @@ def get_geolocation(ip):
         logging.error(f"Error en la solicitud de geolocalización: {e}")
         return None
 
-# Función para guardar los datos del visitante
+# Función para guardar los datos del visitante 
 def save_visitor_data(ip, location, user_agent):
     data = {
         'ip': ip,
@@ -103,15 +103,15 @@ def save_visitor_data(ip, location, user_agent):
         'user_agent': user_agent,
         'date': str(datetime.now())
     }
-    logging.info(f"Datos del visitante guardados: {data}") 
+    logging.info(f"Datos del visitante guardados: {data}")
         
 # Ruta para recibir los metadatos del navegador
 @app.route('/save_metadata', methods=['POST'])
 def save_metadata():
     data = request.json
-    logging.info(f"Metadatos del navegador: {data}")
+    logging.info(f"Metadatos del navegador: {data}") 
     return jsonify({"status": "Metadatos guardados"}), 200
-        
+    
 # Ruta para recibir los eventos de clic
 @app.route('/track_click', methods=['POST'])
 def track_click():
@@ -125,6 +125,6 @@ def save_location():
     data = request.json
     logging.info(f"Ubicación del usuario: {data}")
     return jsonify({"status": "Ubicación guardada"}), 200
-    
+
 if __name__ == "__main__":
     app.run(debug=True)
