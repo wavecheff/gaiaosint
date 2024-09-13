@@ -19,7 +19,12 @@ Cualquier uso malintencionado será responsabilidad del usuario.
 ## Características
 
 - Subida de imágenes a Imgur y generación de enlaces.
-- Rastrear la ubicación aproximada de los visitantes que acceden a los enlaces generados.
+- Capturar y guardar información de visitantes incluyendo:
+	- Dirección IP
+	- Geolocalización
+	- Información del navegador y sistema operativo 
+	- Dispositivos utilizados
+	- Extraer metadatos EXIF de las imagenes subidas
 - Guardar los datos de los visitantes en un archivo de log.
 - Implementación de Talisman para mejorar la seguridad.
 - Sistema de rotación de logs para evitar sobrecarga de archivos.
