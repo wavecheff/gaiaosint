@@ -201,15 +201,35 @@ def save_to_db(data):
     conn.commit()
     conn.close()
 
+# Función para procesar datos geográficos (integración)
+def procesar_geolocalizacion(geo):
+    # Lista para almacenar códigos únicos
+    code_list = []
+
+    # Iterar sobre los datos de geolocalización
+    for i in geo:
+        print(f"ip: {i['ip']}")
+        print(f"country: {i['country']}")
+        print(f"region: {i['region']}")
+        print(f"code: {i['code']}")
+        print("")
+
+        # Evitar duplicados en los códigos
+        if i["code"] not in code_list:
+            print(i["code"])
+            code_list.append(i["code"])
+
+# Ejemplo de uso para procesar datos de geolocalización
+geo_data = [
+    {"ip": "192.168.1.1", "country": "Spain", "region": "Madrid", "code": "ES"},
+    {"ip": "172.16.0.1", "country": "France", "region": "Paris", "code": "FR"},
+    {"ip": "10.0.0.1", "country": "Germany", "region": "Berlin", "code": "DE"}
+]
+procesar_geolocalizacion(geo_data)
+
 # Ruta para guardar ubicación precisa desde el navegador
 @app.route('/save_location', methods=['POST'])
 def save_location():
     data = request.json
     lat = data.get('latitud')
-    lon = data.get('longitud')
-    logging.info(f"Ubicación exacta del usuario - Latitud: {lat}, Longitud: {lon}")
-    return jsonify({"status": "Ubicación exacta guardada"}), 200
-
-if __name__ == "__main__":
-    init_db()  # Inicializar la base de datos
-    app.run(debug=True)
+    lon = data
